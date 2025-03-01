@@ -6,26 +6,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const candlestickDiv = document.getElementById('candlestick');
     const volumeDiv = document.getElementById('volume');
 
-    async function fetchCharts(ticker) {
+    async function fetchStockData(ticker) {
         try {
             loadingIndicator.style.display = 'block';
             errorMessage.style.display = 'none';
             candlestickDiv.innerHTML = '';
             volumeDiv.innerHTML = '';
 
-            const response = await fetch(`/api/chart/${ticker}`);
+            const response = await fetch(`/api/stock/${ticker}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
 
-            // Plot candlestick chart
-            const candlestickChart = JSON.parse(data.candlestick);
-            Plotly.newPlot('candlestick', candlestickChart.data, candlestickChart.layout);
+            // Create candlestick chart data
+            const candlestickData = [{
+                type: 'candlestick',
+                x: data.map(d => d.date),
+                open: data.map(d => d.open),
+                high: data.map(d => d.high),
+                low: data.map(d => d.low),
+                close: data.map(d => d.close)
+            }];
 
-            // Plot volume chart
-            const volumeChart = JSON.parse(data.volume);
-            Plotly.newPlot('volume', volumeChart.data, volumeChart.layout);
+            const candlestickLayout = {
+                title: `${ticker} Stock Price`,
+                yaxis: { title: 'Stock Price (USD)', tickprefix: '$' },
+                xaxis: { title: 'Date' },
+                template: 'plotly_dark'
+            };
+
+            // Create volume chart data
+            const volumeData = [{
+                type: 'bar',
+                x: data.map(d => d.date),
+                y: data.map(d => d.volume),
+                name: 'Volume'
+            }];
+
+            const volumeLayout = {
+                title: `${ticker} Trading Volume`,
+                yaxis: { title: 'Volume' },
+                xaxis: { title: 'Date' },
+                template: 'plotly_dark'
+            };
+
+            // Plot charts
+            Plotly.newPlot('candlestick', candlestickData, candlestickLayout);
+            Plotly.newPlot('volume', volumeData, volumeLayout);
 
         } catch (error) {
             console.error('Error:', error);
@@ -39,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     submitButton.addEventListener('click', function() {
         const ticker = tickerInput.value.trim().toUpperCase();
         if (ticker) {
-            fetchCharts(ticker);
+            fetchStockData(ticker);
         }
     });
 
@@ -48,11 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') {
             const ticker = tickerInput.value.trim().toUpperCase();
             if (ticker) {
-                fetchCharts(ticker);
+                fetchStockData(ticker);
             }
         }
     });
 
     // Load initial data for AAPL
-    fetchCharts('AAPL');
+    fetchStockData('AAPL');
 });

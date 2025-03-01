@@ -1,13 +1,11 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-import plotly.graph_objects as go
-import plotly.utils
-import pandas as pd
 import json
+from datetime import datetime, timedelta
 from db import get_db_connection
 
 app = FastAPI()
@@ -29,40 +27,36 @@ templates = Jinja2Templates(directory="templates")
 
 
 
-def create_candlestick_chart(ticker, days=30):
-    """Create a candlestick chart for the given ticker"""
+def get_stock_data(ticker, days=30):
+    """Get stock data for the given ticker"""
     try:
         engine = get_db_connection()
-        logger.info(f"Creating candlestick chart for {ticker} over {days} days")
         
         # Get stock data
-    query = text("""
-        SELECT date, open, high, low, close, volume
-        FROM daily_prices
-        WHERE ticker = :ticker
-        AND date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
-        ORDER BY date
-    """)
-    
-    df = pd.read_sql(query, engine, params={'ticker': ticker, 'days': days})
-    
-    # Create candlestick chart
-    fig = go.Figure(data=[go.Candlestick(x=df['date'],
-                                        open=df['open'],
-                                        high=df['high'],
-                                        low=df['low'],
-                                        close=df['close'])])
-    
-    # Update layout
-    fig.update_layout(
-        title=f'{ticker} Stock Price',
-        yaxis_title='Stock Price (USD)',
-        xaxis_title='Date',
-        template='plotly_dark',
-        yaxis_tickprefix='$'
-    )
-    
-    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        query = text("""
+            SELECT date, open, high, low, close, volume
+            FROM daily_prices
+            WHERE ticker = :ticker
+            AND date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+            ORDER BY date
+        """)
+        
+        with engine.connect() as conn:
+            result = conn.execute(query, {'ticker': ticker, 'days': days})
+            data = []
+            for row in result:
+                data.append({
+                    'date': row.date.strftime('%Y-%m-%d'),
+                    'open': float(row.open),
+                    'high': float(row.high),
+                    'low': float(row.low),
+                    'close': float(row.close),
+                    'volume': int(row.volume)
+                })
+            return data
+    except Exception as e:
+        print(f"Error getting stock data: {str(e)}")
+        return []
 
 def create_volume_chart(ticker, days=30):
     """Create a volume chart for the given ticker"""
@@ -97,25 +91,10 @@ def create_volume_chart(ticker, days=30):
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     """Render the main page"""
-    try:
-        logger.info("Rendering index page")
-        return templates.TemplateResponse("index.html", {"request": request})
-    except Exception as e:
-        logger.error(f"Error rendering index page: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error rendering page")
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/api/chart/{ticker}")
-async def get_charts(ticker: str):
-    """Get charts for the specified ticker"""
-    try:
-        logger.info(f"Generating charts for ticker: {ticker}")
-        candlestick = create_candlestick_chart(ticker)
-        volume = create_volume_chart(ticker)
-        
-        return {
-            'candlestick': candlestick,
-            'volume': volume
-        }
-    except Exception as e:
-        logger.error(f"Error generating charts for {ticker}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating charts: {str(e)}")
+@app.get("/api/stock/{ticker}")
+async def get_stock_info(ticker: str):
+    """Get stock data for the specified ticker"""
+    data = get_stock_data(ticker)
+    return JSONResponse(content=data)
