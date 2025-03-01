@@ -1,0 +1,4 @@
+ticker,timestamp,price,market_cap,daily_change,volume
+AAPL,2025-02-23 12:42:49,245.55,$245.83,,N/A
+GOOGL,2025-02-23 12:45:21,179.66,$184.56,,N/A
+MSFT,2025-02-23 12:45:55,408.29,$416.13,,N/A

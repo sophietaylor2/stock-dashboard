@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .chart-container {
+            background-color: #2d2d2d;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .btn-ticker {
+            margin: 5px;
+            background-color: #4a4a4a;
+            border: none;
+            color: #ffffff;
+        }
+        .btn-ticker:hover, .btn-ticker.active {
+            background-color: #007bff;
+        }
+        .header {
+            background-color: #2d2d2d;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row header">
+            <div class="col-12">
+                <h1 class="text-center">Stock Market Dashboard</h1>
+                <div class="text-center mt-3">
+                    <button class="btn btn-ticker active" data-ticker="AAPL">AAPL</button>
+                    <button class="btn btn-ticker" data-ticker="GOOGL">GOOGL</button>
+                    <button class="btn btn-ticker" data-ticker="MSFT">MSFT</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div id="candlestick-chart"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div id="volume-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateCharts(ticker) {
+            $.get(`/api/chart/${ticker}`, function(data) {
+                Plotly.newPlot('candlestick-chart', JSON.parse(data.candlestick));
+                Plotly.newPlot('volume-chart', JSON.parse(data.volume));
+            });
+        }
+
+        $(document).ready(function() {
+            // Load initial charts for AAPL
+            updateCharts('AAPL');
+
+            // Handle ticker button clicks
+            $('.btn-ticker').click(function() {
+                $('.btn-ticker').removeClass('active');
+                $(this).addClass('active');
+                updateCharts($(this).data('ticker'));
+            });
+        });
+    </script>
+</body>
+</html>
