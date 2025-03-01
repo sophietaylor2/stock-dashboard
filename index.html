@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="loading">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row header">
+            <div class="col-12">
+                <h1 class="text-center">Stock Market Dashboard</h1>
+                <div class="text-center mt-3">
+                    <input type="text" id="ticker" placeholder="Enter ticker (e.g., AAPL)" class="form-control d-inline-block" style="width: 200px;">
+                    <button id="submit" class="btn btn-primary">Get Data</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div id="candlestick"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div id="volume"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
+            updateCharts('AAPL');
+
+            // Handle ticker button clicks
+            $('.btn-ticker').click(function() {
+                $('.btn-ticker').removeClass('active');
+                $(this).addClass('active');
+                updateCharts($(this).data('ticker'));
+            });
+        });
+    </script>
+</body>
+</html>

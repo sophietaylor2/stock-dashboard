@@ -1,14 +1,30 @@
 {
     "builds": [
         {
-            "src": "main.py",
+            "src": "api/*.py",
             "use": "@vercel/python"
+        },
+        {
+            "src": "*.html",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "static/**",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
         {
-            "src": "/(.*)",
-            "dest": "/main.py"
+            "src": "/api/stock/(.*)",
+            "dest": "/api/stock.py"
+        },
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/",
+            "dest": "/index.html"
         }
     ]
 }
