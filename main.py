@@ -1,6 +1,5 @@
-import logging
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,13 +8,9 @@ import plotly.graph_objects as go
 import plotly.utils
 import pandas as pd
 import json
-from db import get_db_connection, init_db
+from db import get_db_connection
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Stock Dashboard")
+app = FastAPI()
 
 # Add CORS middleware
 app.add_middleware(
@@ -31,16 +26,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="templates")
-
-# Initialize database on startup
-@app.on_event("startup")
-async def startup_event():
-    try:
-        init_db()
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize database: {str(e)}")
-        raise
 
 
 
