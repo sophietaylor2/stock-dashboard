@@ -6,14 +6,17 @@ body {
     color: #ffffff;
 }
 
-.container {
-    max-width: 1200px;
+.container-fluid {
+    max-width: 1400px;
     margin: 0 auto;
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 30px;
+    background-color: #2d2d2d;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .controls {
@@ -30,7 +33,6 @@ input[type="text"] {
     border-radius: 4px;
     background-color: #2a2a2a;
     color: #ffffff;
-    width: 120px;
 }
 
 button {
@@ -50,8 +52,14 @@ button:hover {
 
 .loading {
     display: none;
-    text-align: center;
-    margin: 20px 0;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
 }
 
 .error {
@@ -59,12 +67,38 @@ button:hover {
     color: #ff4444;
     text-align: center;
     margin: 20px 0;
+    padding: 10px;
+    background-color: rgba(255, 68, 68, 0.1);
+    border-radius: 4px;
 }
 
 .chart-container {
-    margin-bottom: 30px;
-    background-color: #2a2a2a;
+    margin-bottom: 20px;
+    background-color: #2d2d2d;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.footer {
+    background-color: #2d2d2d;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.footer h5 {
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+.footer .text-muted {
+    color: #aaa !important;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.footer strong {
+    color: #fff;
 }

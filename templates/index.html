@@ -8,59 +8,111 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #1a1a1a;
-            color: #ffffff;
-        }
-        .chart-container {
-            background-color: #2d2d2d;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .btn-ticker {
-            margin: 5px;
-            background-color: #4a4a4a;
-            border: none;
-            color: #ffffff;
-        }
-        .btn-ticker:hover, .btn-ticker.active {
-            background-color: #007bff;
-        }
-        .header {
-            background-color: #2d2d2d;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-        }
-        .loading {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 1000;
-        }
+        body { background-color: #1a1a1a; color: #ffffff; }
+        .header { padding: 20px 0; background-color: #2a2a2a; margin-bottom: 20px; }
+        .chart-container { margin: 20px 0; background-color: #2a2a2a; padding: 20px; border-radius: 5px; }
+        .stats-container { background-color: #2a2a2a; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .stats-card { background-color: #3a3a3a; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .positive { color: #00ff00; }
+        .negative { color: #ff0000; }
+        .btn-ticker { margin: 0 5px; }
+        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); 
+                  display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .error { display: none; position: fixed; top: 20px; right: 20px; padding: 15px; background-color: #ff0000; 
+                color: white; border-radius: 5px; z-index: 1000; }
+        .market-summary { background-color: #2a2a2a; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="loading">
+    <div id="loading" class="loading">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
+
+    <div id="error" class="error"></div>
 
     <div class="container-fluid">
         <div class="row header">
             <div class="col-12">
                 <h1 class="text-center">Stock Market Dashboard</h1>
                 <div class="text-center mt-3">
-                    <button class="btn btn-ticker active" data-ticker="AAPL">AAPL</button>
-                    <button class="btn btn-ticker" data-ticker="GOOGL">GOOGL</button>
-                    <button class="btn btn-ticker" data-ticker="MSFT">MSFT</button>
+                    <input type="text" id="ticker" placeholder="Enter ticker (e.g., AAPL)" class="form-control d-inline-block" style="width: 200px;">
+                    <button id="submit" class="btn btn-primary">Get Data</button>
+                </div>
+                <div class="text-center mt-3">
+                    <div class="btn-group" role="group">
+                        {% for ticker in tickers %}
+                            <button class="btn btn-outline-primary btn-ticker {% if loop.first %}active{% endif %}" data-ticker="{{ ticker }}">{{ ticker }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div id="stock-summary" class="stats-container">
+                    <h3>Stock Summary</h3>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h5>Latest Price</h5>
+                                <p id="latest-price">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h5>52-Week Range</h5>
+                                <p id="week-range">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h5>Price Position</h5>
+                                <p id="price-position">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h5>Avg Volume</h5>
+                                <p id="avg-volume">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5>Weekly Return</h5>
+                                <p id="weekly-return">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5>Monthly Return</h5>
+                                <p id="monthly-return">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5>Yearly Return</h5>
+                                <p id="yearly-return">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="market-summary">
+                    <h3>Market Summary</h3>
+                    <div class="stats-card">
+                        <h5>Top Gainers</h5>
+                        <div id="top-gainers"></div>
+                    </div>
+                    <div class="stats-card">
+                        <h5>High Volume</h5>
+                        <div id="high-volume"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,7 +120,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="chart-container">
-                    <div id="candlestick-chart"></div>
+                    <div id="candlestick"></div>
                 </div>
             </div>
         </div>
@@ -76,30 +128,165 @@
         <div class="row">
             <div class="col-12">
                 <div class="chart-container">
-                    <div id="volume-chart"></div>
+                    <div id="volume"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row footer">
+            <div class="col-12">
+                <div class="text-center mt-3 mb-3">
+                    <h5>Technical Indicators</h5>
+                    <p class="text-muted">
+                        <strong>MA20/MA50:</strong> 20 and 50-day Moving Averages - Help identify trends<br>
+                        <strong>Volume MA:</strong> 20-day Volume Moving Average - Shows trading volume trends<br>
+                        <strong>Price Position:</strong> Current price position relative to 52-week range
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        async function updateCharts(ticker) {
-            $('.loading').show();
-            try {
-                const response = await fetch(`/api/chart/${ticker}`);
-                const data = await response.json();
-                await Plotly.newPlot('candlestick-chart', JSON.parse(data.candlestick));
-                await Plotly.newPlot('volume-chart', JSON.parse(data.volume));
-            } catch (error) {
-                console.error('Error fetching chart data:', error);
-            } finally {
-                $('.loading').hide();
-            }
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num);
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+        }
+
+        function formatPercent(percent) {
+            return new Intl.NumberFormat('en-US', { style: 'percent', minimumFractionDigits: 2 }).format(percent / 100);
+        }
+
+        function updateSummary(summary) {
+            if (!summary) return;
+
+            $('#latest-price').text(formatPrice(summary.latest_price));
+            $('#week-range').html(`${formatPrice(summary['52_week_low'])} - ${formatPrice(summary['52_week_high'])}`);
+            $('#price-position').text(formatPercent(summary.price_position));
+            $('#avg-volume').text(formatNumber(summary.avg_volume));
+
+            const weeklyReturn = $('#weekly-return').text(formatPercent(summary.weekly_return))
+                .removeClass('positive negative')
+                .addClass(summary.weekly_return >= 0 ? 'positive' : 'negative');
+
+            const monthlyReturn = $('#monthly-return').text(formatPercent(summary.monthly_return))
+                .removeClass('positive negative')
+                .addClass(summary.monthly_return >= 0 ? 'positive' : 'negative');
+
+            const yearlyReturn = $('#yearly-return').text(formatPercent(summary.yearly_return))
+                .removeClass('positive negative')
+                .addClass(summary.yearly_return >= 0 ? 'positive' : 'negative');
+        }
+
+        function updateMarketSummary() {
+            // Update top gainers
+            $.get('/api/stocks/gainers', function(data) {
+                const gainersHtml = data.map(stock => 
+                    `<div class="positive">${stock.ticker}: +${formatPercent(stock.daily_return_percent)}</div>`
+                ).join('');
+                $('#top-gainers').html(gainersHtml);
+            });
+
+            // Update high volume stocks
+            $.get('/api/stocks/volume', function(data) {
+                const volumeHtml = data.map(stock => 
+                    `<div>${stock.ticker}: +${formatPercent(stock.volume_increase_percent)} vol</div>`
+                ).join('');
+                $('#high-volume').html(volumeHtml);
+            });
+        }
+
+        function createCandlestickChart(data) {
+            const trace = {
+                x: data.map(d => d.date),
+                open: data.map(d => d.open),
+                high: data.map(d => d.high),
+                low: data.map(d => d.low),
+                close: data.map(d => d.close),
+                type: 'candlestick',
+                name: 'Price'
+            };
+
+            const ma20 = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.MA20),
+                type: 'scatter',
+                name: '20-day MA',
+                line: { color: 'orange' }
+            };
+
+            const ma50 = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.MA50),
+                type: 'scatter',
+                name: '50-day MA',
+                line: { color: 'blue' }
+            };
+
+            const layout = {
+                title: 'Stock Price with Moving Averages',
+                yaxis: { title: 'Stock Price (USD)', tickprefix: '$' },
+                xaxis: { title: 'Date' },
+                template: 'plotly_dark'
+            };
+
+            Plotly.newPlot('candlestick', [trace, ma20, ma50], layout);
+        }
+
+        function createVolumeChart(data) {
+            const trace = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.volume),
+                type: 'bar',
+                name: 'Volume'
+            };
+
+            const avgVolume = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.avg_20day_volume),
+                type: 'scatter',
+                name: '20-day Avg Volume',
+                line: { color: 'orange' }
+            };
+
+            const layout = {
+                title: 'Trading Volume',
+                yaxis: { title: 'Volume' },
+                xaxis: { title: 'Date' },
+                template: 'plotly_dark'
+            };
+
+            Plotly.newPlot('volume', [trace, avgVolume], layout);
+        }
+
+        function updateCharts(ticker) {
+            $('#loading').css('display', 'flex');
+            $('#error').hide();
+
+            $.get(`/api/data/${ticker}`, function(data) {
+                if (data.error) {
+                    $('#error').text(data.error).show();
+                    return;
+                }
+
+                createCandlestickChart(data.data.price_data);
+                createVolumeChart(data.data.volume_data);
+                updateSummary(data.summary);
+                $('#loading').hide();
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                $('#loading').hide();
+                $('#error').text('Error loading data: ' + errorThrown).show();
+            });
         }
 
         $(document).ready(function() {
-            // Load initial charts for AAPL
-            updateCharts('AAPL');
+            // Initialize with first ticker
+            const firstTicker = $('.btn-ticker').first().data('ticker');
+            updateCharts(firstTicker);
+            updateMarketSummary();
 
             // Handle ticker button clicks
             $('.btn-ticker').click(function() {
@@ -107,6 +294,18 @@
                 $(this).addClass('active');
                 updateCharts($(this).data('ticker'));
             });
+
+            // Handle manual ticker input
+            $('#submit').click(function() {
+                const ticker = $('#ticker').val().toUpperCase();
+                if (ticker) {
+                    $('.btn-ticker').removeClass('active');
+                    updateCharts(ticker);
+                }
+            });
+
+            // Update market summary every minute
+            setInterval(updateMarketSummary, 60000);
         });
     </script>
 </body>

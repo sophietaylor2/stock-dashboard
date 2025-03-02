@@ -1,9 +1,9 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -15,11 +15,49 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Virtual Environment
 .env
 .venv
+env/
 venv/
 ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Cache
+cache/
+.cache/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# Local data
+stock_data/*.csv
+stock_data/historical/*.csv
+*.csv
+
+# Secrets
+set_env.sh
+
+# Development
+*.dev.py
